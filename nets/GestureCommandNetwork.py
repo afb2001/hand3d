@@ -65,10 +65,10 @@ class GestureCommandNetwork(object):
                 x = ops.fully_connected(x, 'fc_%d' % i, out_chan=out_chan, trainable=train)
                 x = ops.dropout(x, 0.8, evaluation)
 
-            # infer gesture class # TODO! -- this function uses float32 type as output and that's wrong
+            # infer gesture class
             gesture_class = ops.fully_connected(x, 'fc_gesture', out_chan=self.n_classes, trainable=train)
 
-            # reshape stuff # TODO
-            # coord_xyz_rel = tf.reshape(coord_xyz_rel, [s[0], self.num_kp, 3])
+            # softmax layer at the end to make it look like probabilities (not sure it's necessary)
+            gesture_class = tf.nn.softmax(gesture_class)
 
             return gesture_class
