@@ -495,13 +495,13 @@ class GestureDbReader(object):
         """
         self.path_to_db = './data/bin/'
 
-        self.num_samples = 0
+        self.num_samples = 45
         if mode == 'training':
             self.path_to_db += 'gesture_training.bin'
-            self.num_samples = 41258  # TODO! Need to assign appropriately for our db (or maybe read from the OS somehow)
+            self.num_samples = 45  # TODO! Need to assign appropriately for our db (or maybe read from the OS somehow)
         elif mode == 'evaluation':
             self.path_to_db += 'gesture_evaluation.bin'
-            self.num_samples = 2728
+            self.num_samples = 0
         else:
             assert 0, "Unknown dataset mode."
 
@@ -512,8 +512,6 @@ class GestureDbReader(object):
         # self.sigma = sigma
         self.shuffle = shuffle
         # self.use_wrist_coord = use_wrist_coord
-        self.random_crop_to_size = random_crop_to_size
-        self.random_crop_size = 256
         self.scale_to_size = scale_to_size
         self.scale_target_size = (240, 320)  # size its scaled down to if scale_to_size=True
 
@@ -676,10 +674,8 @@ class GestureDbReader(object):
         # cond_left = tf.logical_and(tf.cast(tf.ones_like(kp_coord_xyz_left), tf.bool), tf.greater(num_px_left_hand, num_px_right_hand))
         # kp_coord_xyz21 = tf.where(cond_left, kp_coord_xyz_left, kp_coord_xyz_right)
         #
-        # hand_side = tf.where(tf.greater(num_px_left_hand, num_px_right_hand),
-        #                      tf.constant(0, dtype=tf.int32),
-        #                      tf.constant(1, dtype=tf.int32))  # left hand = 0; right hand = 1
-        # data_dict['hand_side'] = tf.one_hot(hand_side, depth=2, on_value=1.0, off_value=0.0, dtype=tf.float32)
+        hand_side = tf.constant(1, dtype=tf.int32)
+        data_dict['hand_side'] = tf.one_hot(hand_side, depth=2, on_value=1.0, off_value=0.0, dtype=tf.float32)
         #
         # data_dict['keypoint_xyz21'] = kp_coord_xyz21
         #
@@ -814,7 +810,7 @@ class GestureDbReader(object):
         #     scoremap *= self.scoremap_dropout_prob
         #
         # data_dict['scoremap'] = scoremap
-
+    
         if self.scale_to_size:
             # image, keypoint_uv21, keypoint_vis21 = data_dict['image'], data_dict['keypoint_uv21'], data_dict['keypoint_vis21']
             image = data_dict['image']

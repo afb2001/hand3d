@@ -45,14 +45,13 @@ class GestureCommandNetwork(object):
         """ Infer gesture from 2D scoremaps. """
         scoremap_pooled = tf.nn.avg_pool(scoremap, ksize=[1, 8, 8, 1], strides=[1, 8, 8, 1], padding='SAME')
 
-        gesture_inference = self.inference_gesture(scoremap_pooled, evaluation, train=True)
+        gesture_inference = self.inference_gesture(scoremap_pooled, evaluation,hand_side, train=True)
 
         return gesture_inference
 
-    def inference_gesture(self, keypoints_scoremap, evaluation, train=False):
+    def inference_gesture(self, keypoints_scoremap, evaluation, hand_side, train=False):
         """ Inference of command class for vehicle remote driving from gestures. """
         # assume one hand side
-        hand_side = 0  # ??? TODO! -- find out what data type hand_side has
         with tf.variable_scope('Gesture'):
             x = keypoints_scoremap  # this is 28x28x21
             s = x.get_shape().as_list()
@@ -67,7 +66,7 @@ class GestureCommandNetwork(object):
 
             # infer gesture class # TODO! -- this function uses float32 type as output and that's wrong
             gesture_class = ops.fully_connected(x, 'fc_gesture', out_chan=self.n_classes, trainable=train)
-
+            
             # reshape stuff # TODO
             # coord_xyz_rel = tf.reshape(coord_xyz_rel, [s[0], self.num_kp, 3])
 

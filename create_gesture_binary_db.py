@@ -19,18 +19,18 @@
     NOTE: the annotation dictionary is a different format than before, which was {sample_id -> {k -> v}} with various keys
 """
 from __future__ import print_function, unicode_literals
-
+import numpy as np
 import pickle
 import os
 import scipy.misc
 import struct
 
 # SET THIS to where RHD is located on your machine
-path_to_db = './RHD_published_v2/'
+path_to_db = './'
 
 # chose if you want to create a binary for training or evaluation set
-# set = 'training'
-set = 'evaluation'
+set = 'training'
+#set = 'gesture'
 
 # ++++++++++++++++++++ No more changes below this line ++++++++++++++++++++
 
@@ -75,7 +75,6 @@ def write_to_binary(file_handle, image, mask, gesture):
         for y in range(mask.shape[1]):
             file_handle.write(struct.pack('B', mask[x, y]))
     bytes_written += 4*mask.shape[0]*mask.shape[1]
-
     # write gesture class (integer)
     file_handle.write(struct.pack('B', gesture))
 
@@ -103,7 +102,7 @@ with open(file_name_out, 'wb') as fo:
     for sample_id, gesture_class in anno_all.items():
         # load data
         image = scipy.misc.imread(os.path.join(path_to_db, set, 'color', '%.5d.png' % sample_id))
-        mask = scipy.misc.imread(os.path.join(path_to_db, set, 'mask', '%.5d.png' % sample_id))
+        mask = np.zeros((320, 320),dtype = "int32")
 
         # # get info from annotation dictionary
         # kp_coord_uv = anno['uv_vis'][:, :2]  # u, v coordinates of 42 hand keypoints, pixel

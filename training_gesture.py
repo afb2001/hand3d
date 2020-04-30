@@ -6,7 +6,7 @@ import sys
 
 from nets.PosePriorNetwork import PosePriorNetwork
 from nets.GestureCommandNetwork import GestureCommandNetwork
-from data.BinaryDbReader import BinaryDbReader
+from data.BinaryDbReader import GestureDbReader
 from utils.general import LearningRateScheduler
 
 # Chose which variant to evaluate
@@ -26,13 +26,12 @@ train_para = {'lr': [1e-5, 1e-6],
               'snapshot_dir': 'snapshots_gesture'}
 
 # get dataset # AFB - assume this is fine for now
-dataset = BinaryDbReader(mode='training',
-                         batch_size=8, shuffle=True, hand_crop=True, use_wrist_coord=False,
-                         coord_uv_noise=True, crop_center_noise=True, crop_offset_noise=True, crop_scale_noise=True)
+dataset = GestureDbReader(mode='training',
+                         batch_size=8, shuffle=True,
+                         crop_center_noise=True, crop_offset_noise=True, crop_scale_noise=True)
 
 # build network graph
 data = dataset.get()
-
 # build network
 # net = PosePriorNetwork(VARIANT)
 net = GestureCommandNetwork()
@@ -40,7 +39,7 @@ net = GestureCommandNetwork()
 # feed trough network
 evaluation = tf.placeholder_with_default(True, shape=())
 # _, coord3d_pred, R = net.inference(data['scoremap'], data['hand_side'], evaluation)
-gesture_pred = net.inference(data['scoremap'], data['hand_side'], evaluation)
+gesture_pred = net.inference(data['image'], data["hand_side"], evaluation)
 
 # Start TF
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
