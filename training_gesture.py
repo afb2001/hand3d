@@ -65,6 +65,7 @@ elif VARIANT == 'proposed':
 elif VARIANT == 'gesture':
     # Assume we can do this to whatever data['gesture'] is. However we decide to do this, if they represent which class
     # it is then it's fine
+    # TODO! -- this isn't gonna work for reasonable representations of gesture
     loss += tf.reduce_mean(tf.square(int(gesture_pred == data['gesture'])))
 
 # Solver
