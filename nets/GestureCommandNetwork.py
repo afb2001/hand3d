@@ -64,21 +64,21 @@ class GestureCommandNetwork(object):
             x = tf.reshape(x, [s[0], -1])
             # x = tf.concat([x, hand_side], 1)
             for i, out_chan in enumerate(out_chan_list):
-                layer_name = "fc_%d" % i
-                if i == 0:
-                    weights_shape = [s[1], out_chan]
-                else:
-                    weights_shape = [out_chan, out_chan]
-                with tf.variable_scope(layer_name):
-                    tf.Variable(name = "weights", trainable=True, initial_value = tf.random_normal(weights_shape, mean = 1.0))
-                    tf.Variable(name = "biases", trainable = True, initial_value = tf.zeros((out_chan)))
+                # layer_name = "fc_%d" % i
+                # if i == 0:
+                #     weights_shape = [s[1], out_chan]
+                # else:
+                #     weights_shape = [out_chan, out_chan]
+                # with tf.variable_scope(layer_name):
+                #     tf.Variable(name = "weights", trainable=True, initial_value = tf.random_normal(weights_shape, mean = 1.0))
+                #     tf.Variable(name = "biases", trainable = True, initial_value = tf.zeros((out_chan)))
                 x = ops.fully_connected(x, 'fc_%d' % i, out_chan=out_chan, trainable=train)
                 x = ops.dropout(x, 0.8, evaluation)
 
             # infer gesture class
-            with tf.variable_scope("fc_gesture"):
-                tf.Variable(name = "weights", trainable=True, initial_value = tf.random_normal([out_chan, self.n_classes], mean = 1.0))
-                tf.Variable(name = "biases", trainable = True, initial_value = tf.zeros((self.n_classes)))
+            # with tf.variable_scope("fc_gesture"):
+            #     tf.Variable(name = "weights", trainable=True, initial_value = tf.random_normal([out_chan, self.n_classes], mean = 1.0))
+            #     tf.Variable(name = "biases", trainable = True, initial_value = tf.zeros((self.n_classes)))
             gesture_class = ops.fully_connected(x, 'fc_gesture', out_chan=self.n_classes, trainable=train)
 
             # softmax layer at the end to make it look like probabilities (not sure it's necessary,

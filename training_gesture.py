@@ -21,7 +21,7 @@ VARIANT = 'gesture'
 train_para = {'lr': [1e-5, 1e-6],
               'lr_iter': [60000],
               'max_iter': 80000,
-              'show_loss_freq': 1000,
+              'show_loss_freq': 10,
               'snapshot_freq': 5000,
               'snapshot_dir': 'snapshots_gesture'}
 
@@ -47,12 +47,12 @@ sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 tf.train.start_queue_runners(sess=sess)
 
 # Loss
-# loss = 0.0
+loss = 0.0
 # Gesture class is the index of the max value in gesture_pred. Since data['gesture'] is an integer it's perfect.
 # Loss is just number of incorrect predictions
 # loss += tf.argmax(gesture_pred) != data['gesture']
 labels = tf.one_hot(data['gesture'], net.n_classes)
-loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=gesture_pred)
+loss += tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=gesture_pred)
 
 # Solver
 global_step = tf.Variable(0, trainable=False, name="global_step")
@@ -76,7 +76,9 @@ for i in range(train_para['max_iter']):
     _, loss_v = sess.run([train_op, loss])
 
     if (i % train_para['show_loss_freq']) == 0:
-        print('Iteration %d\t Loss %.1e' % (i, loss_v))
+        # print('Iteration %d\t Loss %.1e' % (i, loss_v))
+        print('Iteration %d' % i)
+        print(loss_v)
         sys.stdout.flush()
 
     if (i % train_para['snapshot_freq']) == 0:
