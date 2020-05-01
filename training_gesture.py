@@ -39,7 +39,7 @@ net = GestureCommandNetwork()
 # feed trough network
 evaluation = tf.placeholder_with_default(True, shape=())
 # _, coord3d_pred, R = net.inference(data['scoremap'], data['hand_side'], evaluation)
-gesture_pred = net.inference(data['image'], evaluation)
+gesture_pred = net.inference(data['image'], evaluation, train=True)
 
 # Start TF
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
