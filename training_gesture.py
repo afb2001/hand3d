@@ -39,7 +39,7 @@ net = GestureCommandNetwork()
 # feed trough network
 evaluation = tf.placeholder_with_default(True, shape=())
 # _, coord3d_pred, R = net.inference(data['scoremap'], data['hand_side'], evaluation)
-gesture_pred = net.inference(data['image'], data["hand_side"], evaluation)
+gesture_pred = net.inference(data['image'], evaluation)
 
 # Start TF
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
@@ -47,24 +47,12 @@ sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 tf.train.start_queue_runners(sess=sess)
 
 # Loss
-loss = 0.0
-if (VARIANT == 'direct') or (VARIANT == 'bottleneck'):
-    loss = tf.reduce_mean(tf.square(coord3d_pred - data['keypoint_xyz21_normed']))
-elif VARIANT == 'local':
-    loss += tf.reduce_mean(tf.square(coord3d_pred - data['keypoint_xyz21_local']))
-elif VARIANT == 'local_w_xyz_loss':
-    from utils.relative_trafo import bone_rel_trafo_inv
-
-    # transform the local coordinates back into xyz for the loss
-    coord3d_pred_xyz = bone_rel_trafo_inv(coord3d_pred)
-    loss += tf.reduce_mean(tf.square(coord3d_pred_xyz - data['keypoint_xyz21_normed']))
-elif VARIANT == 'proposed':
-    loss += tf.reduce_mean(tf.square(coord3d_pred - data['keypoint_xyz21_can']))
-    loss += tf.reduce_mean(tf.square(R - data['rot_mat']))
-elif VARIANT == 'gesture':
-    # Gesture class is the index of the max value in gesture_pred. Since data['gesture'] is an integer it's perfect.
-    # Loss is just number of incorrect predictions
-    loss += tf.argmax(gesture_pred) != data['gesture']
+# loss = 0.0
+# Gesture class is the index of the max value in gesture_pred. Since data['gesture'] is an integer it's perfect.
+# Loss is just number of incorrect predictions
+# loss += tf.argmax(gesture_pred) != data['gesture']
+labels = tf.one_hot(data['gesture'], net.n_classes)
+loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=gesture_pred)
 
 # Solver
 global_step = tf.Variable(0, trainable=False, name="global_step")
