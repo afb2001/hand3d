@@ -62,10 +62,9 @@ elif VARIANT == 'proposed':
     loss += tf.reduce_mean(tf.square(coord3d_pred - data['keypoint_xyz21_can']))
     loss += tf.reduce_mean(tf.square(R - data['rot_mat']))
 elif VARIANT == 'gesture':
-    # Assume we can do this to whatever data['gesture'] is. However we decide to do this, if they represent which class
-    # it is then it's fine
-    # TODO! -- this isn't gonna work for reasonable representations of gesture
-    loss += tf.reduce_mean(tf.square(int(gesture_pred == data['gesture'])))
+    # Gesture class is the index of the max value in gesture_pred. Since data['gesture'] is an integer it's perfect.
+    # Loss is just number of incorrect predictions
+    loss += tf.argmax(gesture_pred) != data['gesture']
 
 # Solver
 global_step = tf.Variable(0, trainable=False, name="global_step")
