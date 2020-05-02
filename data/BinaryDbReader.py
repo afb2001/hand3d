@@ -350,7 +350,7 @@ class BinaryDbReader(object):
         keypoint_hw21 = tf.stack([keypoint_uv21[:, 1], keypoint_uv21[:, 0]], -1)
 
         scoremap_size = self.image_size
-        
+
         if self.hand_crop:
             scoremap_size = (self.crop_size, self.crop_size)
 
@@ -358,7 +358,7 @@ class BinaryDbReader(object):
                                                      scoremap_size,
                                                      self.sigma,
                                                      valid_vec=keypoint_vis21)
-        
+
         if self.scoremap_dropout:
             scoremap = tf.nn.dropout(scoremap, self.scoremap_dropout_prob,
                                         noise_shape=[1, 1, 21])
@@ -499,6 +499,10 @@ class GestureDbReader(object):
         if mode == 'training':
             self.path_to_db += 'gesture_training.bin'
             self.num_samples = 45  # TODO! Need to assign appropriately for our db (or maybe read from the OS somehow)
+        elif mode == "gesture_training":
+            self.path_to_db += 'gesture_gesture_training.bin'
+            self.num_samples = 4594
+
         elif mode == 'evaluation':
             self.path_to_db += 'gesture_evaluation.bin'
             self.num_samples = 0
@@ -539,7 +543,7 @@ class GestureDbReader(object):
     def get(self):
         """ Provides input data to the graph. """
         # calculate size of each record (this lists what is contained in the db and how many bytes are occupied)
-        record_bytes = 2
+        record_bytes = 0
 
         # encoding_bytes = 4
         # kp_xyz_entries = 3 * self.num_kp
@@ -572,7 +576,7 @@ class GestureDbReader(object):
         # decode to floats
         bytes_read = 0
         data_dict = dict()
-        record_bytes_float32 = tf.decode_raw(value, tf.float32)
+        #record_bytes_float32 = tf.decode_raw(value, tf.float32)
 
         # # 1. Read keypoint xyz
         # keypoint_xyz = tf.reshape(tf.slice(record_bytes_float32, [bytes_read//4], [kp_xyz_entries]), [self.num_kp, 3])
@@ -611,7 +615,6 @@ class GestureDbReader(object):
 
         # AFB -- I think I still have to do this?
         # decode to uint8
-        bytes_read += 2
         record_bytes_uint8 = tf.decode_raw(value, tf.uint8)
 
         # 4. Read image
@@ -637,7 +640,7 @@ class GestureDbReader(object):
         data_dict['hand_mask'] = tf.cast(tf.stack([bg_mask, hand_mask], 2), tf.int32)
 
         # Read gesture class
-        gesture_class = tf.reshape(tf.slice(record_bytes_uint8, [bytes_read], [gesture_bytes]), [])  # probably too verbose
+        gesture_class = tf.reshape(tf.slice(record_bytes_uint8, [bytes_read], [gesture_bytes]), [1])  # probably too verbose
         bytes_read += gesture_bytes
         data_dict['gesture'] = gesture_class
 
@@ -654,7 +657,7 @@ class GestureDbReader(object):
         #     keypoint_vis = tf.concat([palm_vis_l, keypoint_vis[1:21], palm_vis_r, keypoint_vis[-20:]], 0)
         # data_dict['keypoint_vis'] = keypoint_vis
 
-        assert bytes_read == record_bytes, "Doesnt add up."
+        #assert bytes_read == record_bytes, "Doesnt add up."
 
         # """ DEPENDENT DATA ITEMS: SUBSET of 21 keypoints"""
         # # figure out dominant hand by analysis of the segmentation mask
@@ -810,7 +813,7 @@ class GestureDbReader(object):
         #     scoremap *= self.scoremap_dropout_prob
         #
         # data_dict['scoremap'] = scoremap
-    
+
         if self.scale_to_size:
             # image, keypoint_uv21, keypoint_vis21 = data_dict['image'], data_dict['keypoint_uv21'], data_dict['keypoint_vis21']
             image = data_dict['image']
@@ -905,4 +908,3 @@ class GestureDbReader(object):
     #
     #         return scoremap
     #
-

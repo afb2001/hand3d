@@ -4,6 +4,8 @@ import tensorflow as tf
 import os
 import sys
 
+tf.logging.set_verbosity(tf.logging.DEBUG)
+
 from nets.PosePriorNetwork import PosePriorNetwork
 from nets.GestureCommandNetwork import GestureCommandNetwork
 from data.BinaryDbReader import GestureDbReader
@@ -63,9 +65,16 @@ loss = 0.0
 # Gesture class is the index of the max value in gesture_pred. Since data['gesture'] is an integer it's perfect.
 # Loss is just number of incorrect predictions
 # loss += tf.argmax(gesture_pred) != data['gesture']
-labels = tf.one_hot(data['gesture'], net.n_classes)
-tf.Print(labels, [labels])
+
+
+#dg_op = tf.Print(data['gesture'], [data['gesture']])
+#labels = tf.one_hot(dg_op, net.n_classes)
+
+labels = tf.one_hot(data["gesture"], net.n_classes)
 loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=gesture_pred))
+
+#labels_op = tf.Print(labels, [labels], message = "hey look here")
+#loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels_op, logits=gesture_pred))
 
 # Solver
 global_step = tf.Variable(0, trainable=False, name="global_step")
