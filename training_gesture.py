@@ -7,7 +7,7 @@ import sys
 from nets.PosePriorNetwork import PosePriorNetwork
 from nets.GestureCommandNetwork import GestureCommandNetwork
 from data.BinaryDbReader import GestureDbReader
-from utils.general import LearningRateScheduler
+from utils.general import LearningRateScheduler, load_weights_from_snapshot
 
 # Chose which variant to evaluate
 # VARIANT = 'direct'
@@ -16,6 +16,9 @@ from utils.general import LearningRateScheduler
 # VARIANT = 'local_w_xyz_loss'
 # VARIANT = 'proposed'
 VARIANT = 'gesture'
+USE_RETRAINED = True
+PATH_TO_POSENET_SNAPSHOTS = './snapshots_posenet/'  # only used when USE_RETRAINED is true
+PATH_TO_HANDSEGNET_SNAPSHOTS = './snapshots_handsegnet/'
 
 # training parameters
 train_para = {'lr': [1e-5, 1e-6],
@@ -26,7 +29,7 @@ train_para = {'lr': [1e-5, 1e-6],
               'snapshot_dir': 'snapshots_gesture'}
 
 # get dataset # AFB - assume this is fine for now
-dataset = GestureDbReader(mode='training',
+dataset = GestureDbReader(mode='gesture_training',
                          batch_size=8, shuffle=True,
                          crop_center_noise=True, crop_offset_noise=True, crop_scale_noise=True)
 
@@ -45,13 +48,23 @@ gesture_pred = net.inference(data['image'], evaluation, train=True)
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
 sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 tf.train.start_queue_runners(sess=sess)
+if USE_RETRAINED:
+    # retrained version: HandSegNet
+    last_cpt = tf.train.latest_checkpoint(PATH_TO_HANDSEGNET_SNAPSHOTS)
+    assert last_cpt is not None, "Could not locate snapshot to load. Did you already train the network and set the path accordingly?"
+    load_weights_from_snapshot(sess, last_cpt, discard_list=['Adam', 'global_step', 'beta'])
 
+    # retrained version: PoseNet
+    last_cpt = tf.train.latest_checkpoint(PATH_TO_POSENET_SNAPSHOTS)
+    assert last_cpt is not None, "Could not locate snapshot to load. Did you already train the network and set the path accordingly?"
+    load_weights_from_snapshot(sess, last_cpt, discard_list=['Adam', 'global_step', 'beta'])
 # Loss
 loss = 0.0
 # Gesture class is the index of the max value in gesture_pred. Since data['gesture'] is an integer it's perfect.
 # Loss is just number of incorrect predictions
 # loss += tf.argmax(gesture_pred) != data['gesture']
 labels = tf.one_hot(data['gesture'], net.n_classes)
+tf.Print(labels, [labels])
 loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=gesture_pred))
 
 # Solver
