@@ -52,7 +52,7 @@ loss = 0.0
 # Loss is just number of incorrect predictions
 # loss += tf.argmax(gesture_pred) != data['gesture']
 labels = tf.one_hot(data['gesture'], net.n_classes)
-loss += tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=gesture_pred)
+loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=gesture_pred))
 
 # Solver
 global_step = tf.Variable(0, trainable=False, name="global_step")
