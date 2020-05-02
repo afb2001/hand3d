@@ -86,3 +86,7 @@ class GestureCommandNetwork(object):
             # gesture_class = tf.nn.softmax(gesture_class)
 
             return gesture_class
+
+    def infer_gesture_as_int(self, image, evaluation, train=False):
+        gesture_class = self.inference(image, evaluation, train)
+        return tf.argmax(gesture_class)
