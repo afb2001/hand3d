@@ -15,7 +15,7 @@ class GestureCommandNetwork(object):
     """ Network containing different variants for lifting 2D predictions into 3D. """
     def __init__(self):
         self.num_kp = 21
-        self.n_fully_connected_layers = 2
+        self.n_fully_connected_layers = 1
         self.n_classes = 6
         self.fully_connected_layers_size = 32
         self.color_hand_pose_net = ColorHandPose3DNetwork()

@@ -4,8 +4,6 @@ import tensorflow as tf
 import os
 import sys
 
-tf.logging.set_verbosity(tf.logging.DEBUG)
-
 from nets.PosePriorNetwork import PosePriorNetwork
 from nets.GestureCommandNetwork import GestureCommandNetwork
 from data.BinaryDbReader import GestureDbReader
@@ -23,11 +21,11 @@ PATH_TO_POSENET_SNAPSHOTS = './snapshots_posenet/'  # only used when USE_RETRAIN
 PATH_TO_HANDSEGNET_SNAPSHOTS = './snapshots_handsegnet/'
 
 # training parameters
-train_para = {'lr': [1e-5, 1e-6],
+train_para = {'lr': [1e-4, 1e-5],
               'lr_iter': [60000],
-              'max_iter': 80000,
+              'max_iter': 40000,
               'show_loss_freq': 10,
-              'snapshot_freq': 5000,
+              'snapshot_freq': 1000,
               'snapshot_dir': 'snapshots_gesture'}
 
 # get dataset # AFB - assume this is fine for now

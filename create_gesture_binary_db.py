@@ -24,12 +24,15 @@ import pickle
 import os
 import scipy.misc
 import struct
+from glob import glob
 
 # SET THIS to where RHD is located on your machine
-path_to_db = './'
-
+path_to_db = '.'
+good2go = glob("gesture_training/check/*")
+good2go = set(list(map(lambda x: x.split("/")[-1].split(".png")[0],good2go)))
 # chose if you want to create a binary for training or evaluation set
-set = 'training'
+
+set = 'gesture_training'
 #set = 'gesture'
 
 # ++++++++++++++++++++ No more changes below this line ++++++++++++++++++++
@@ -101,17 +104,18 @@ with open(file_name_out, 'wb') as fo:
     num_samples = len(anno_all.items())
     for sample_id, gesture_class in anno_all.items():
         # load data
-        image = scipy.misc.imread(os.path.join(path_to_db, set, 'color', '%.5d.png' % sample_id))
-        mask = np.zeros((320, 320),dtype = "int32")
-
-        # # get info from annotation dictionary
-        # kp_coord_uv = anno['uv_vis'][:, :2]  # u, v coordinates of 42 hand keypoints, pixel
-        # kp_visible = anno['uv_vis'][:, 2] == 1  # visibility of the keypoints, boolean
-        # kp_coord_xyz = anno['xyz']  # x, y, z coordinates of the keypoints, in meters
-        # camera_intrinsic_matrix = anno['K']  # matrix containing intrinsic parameters
-
-        # write_to_binary(fo, image, mask, kp_coord_xyz, kp_coord_uv, kp_visible, camera_intrinsic_matrix)
-        write_to_binary(fo, image, mask, gesture_class)
+        name = '%.5d.png' % sample_id
+        if name[0:5] in good2go:
+            image = scipy.misc.imread(os.path.join(path_to_db, set, 'color', name))
+            mask = np.zeros((320, 320),dtype = "int32")
+            # # get info from annotation dictionary
+            # kp_coord_uv = anno['uv_vis'][:, :2]  # u, v coordinates of 42 hand keypoints, pixel
+            # kp_visible = anno['uv_vis'][:, 2] == 1  # visibility of the keypoints, boolean
+            # kp_coord_xyz = anno['xyz']  # x, y, z coordinates of the keypoints, in meters
+            # camera_intrinsic_matrix = anno['K']  # matrix containing intrinsic parameters
+            # write_to_binary(fo, image, mask, kp_coord_xyz, kp_coord_uv, kp_visible, camera_intrinsic_matrix)
+            write_to_binary(fo, image, mask, gesture_class)
 
         if (sample_id % 100) == 0:
             print('%d / %d images done: %.3f percent' % (sample_id, num_samples, sample_id*100.0/num_samples))
+            print(gesture_class)
