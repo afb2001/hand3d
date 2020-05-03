@@ -17,7 +17,7 @@ class GestureCommandNetwork(object):
         self.num_kp = 21
         self.n_fully_connected_layers = 2
         self.n_classes = 6
-        self.fully_connected_layers_size = 512
+        self.fully_connected_layers_size = 32
         self.color_hand_pose_net = ColorHandPose3DNetwork()
 
     def init(self, session, weight_files=None, exclude_var_list=None):
@@ -89,4 +89,5 @@ class GestureCommandNetwork(object):
 
     def infer_gesture_as_int(self, image, evaluation, train=False):
         gesture_class = self.inference(image, evaluation, train)
-        return tf.argmax(gesture_class)
+        print(gesture_class)
+        return tf.argmax(gesture_class,axis = 1)
