@@ -28,8 +28,8 @@ from glob import glob
 
 # SET THIS to where RHD is located on your machine
 path_to_db = '.'
-good2go = glob("gesture_training/check/*")
-good2go = set(list(map(lambda x: x.split("/")[-1].split(".png")[0],good2go)))
+#good2go = glob("gesture_training/check/*")
+#good2go = set(list(map(lambda x: x.split("/")[-1].split(".png")[0],good2go)))
 # chose if you want to create a binary for training or evaluation set
 
 set = 'gesture_training'
@@ -99,13 +99,19 @@ if not os.path.exists('./data/bin'):
 with open(os.path.join(path_to_db, set, 'anno_%s.pickle' % set), 'rb') as fi:
     anno_all = pickle.load(fi)
 
+sample_ids = np.asarray(list(anno_all.keys()))
+np.random.shuffle(sample_ids)
+print(type(anno_all))
 # iterate samples of the set and write to binary file
 with open(file_name_out, 'wb') as fo:
     num_samples = len(anno_all.items())
-    for sample_id, gesture_class in anno_all.items():
+    count_samples = 0
+    for sample_id in sample_ids:
+        gesture_class = anno_all[sample_id]
         # load data
         name = '%.5d.png' % sample_id
-        if name[0:5] in good2go:
+        if True:
+        #if name[0:5] in good2go:
             image = scipy.misc.imread(os.path.join(path_to_db, set, 'color', name))
             mask = np.zeros((320, 320),dtype = "int32")
             # # get info from annotation dictionary
@@ -116,6 +122,7 @@ with open(file_name_out, 'wb') as fo:
             # write_to_binary(fo, image, mask, kp_coord_xyz, kp_coord_uv, kp_visible, camera_intrinsic_matrix)
             write_to_binary(fo, image, mask, gesture_class)
 
-        if (sample_id % 100) == 0:
-            print('%d / %d images done: %.3f percent' % (sample_id, num_samples, sample_id*100.0/num_samples))
+        if (count_samples% 100) == 0:
+            print('%d / %d images done: %.3f percent' % (count_samples, num_samples, count_samples*100.0/num_samples))
             print(gesture_class)
+        count_samples+=1

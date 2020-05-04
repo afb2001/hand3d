@@ -3,6 +3,8 @@ from nets.PosePriorNetwork import PosePriorNetwork
 from nets.GestureCommandNetwork import GestureCommandNetwork
 from data.BinaryDbReader import GestureDbReader
 from utils.general import LearningRateScheduler, load_weights_from_snapshot
+import pickle
+import numpy as np
 
 # Chose which variant to evaluate
 # VARIANT = 'direct'
@@ -34,7 +36,7 @@ train_para = {'lr': [1e-5, 1e-6],
 # build network
 # net = PosePriorNetwork(VARIANT)
 net = GestureCommandNetwork()
-dataset = GestureDbReader(mode='training',
+dataset = GestureDbReader(mode='gesture_training',
                          batch_size=8, shuffle=True,
                          crop_center_noise=True, crop_offset_noise=True, crop_scale_noise=True)
 data = dataset.get()
@@ -44,8 +46,7 @@ evaluation = tf.placeholder_with_default(True, shape=())
 # _, coord3d_pred, R = net.inference(data['scoremap'], data['hand_side'], evaluation)
 #inference = net.inference(data["image"], evaluation, train=False)
 
-inference = net.infer_gesture_as_int(data["image"], evaluation, train=False)
-op = tf.Print(data["gesture"], [data["gesture"]])
+gesture_pred = net.inference(data['image'], evaluation, train=False)
 # Start TF
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
 sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
@@ -65,10 +66,21 @@ if USE_RETRAINED:
     assert last_cpt is not None, "Could not locate snapshot to load. Did you already train the network and set the path accordingly?"
     load_weights_from_snapshot(sess, last_cpt, discard_list=['Adam', 'global_step', 'beta'])
 
-sess.run(tf.global_variables_initializer())
 
-
-
-for i in range(16):
-    x, y = sess.run([inference, data["gesture"]])
-    print(x, y.T)
+g = tf.reshape(tf.argmax(gesture_pred,axis = 1, output_type=tf.int32), (8, 1))
+accurate = tf.equal(g, tf.cast(data["gesture"], tf.int32))
+accuracy_t = tf.count_nonzero(accurate)
+confusion = np.zeros((5, 5))
+accuracy = 0
+total = 0
+ges,  acc = sess.run([g, accuracy_t])
+for i in range(500):
+    ges, dg, acc, gpred = sess.run([g,data["gesture"], accuracy_t, gesture_pred])
+    total += 8
+    accuracy += acc
+    print(str(accuracy) + "/" + str(total))
+    for j in range(8):
+        confusion[dg[j],ges[j]] += 1
+print(confusion)
+with open("confusion.pickle", "wb") as out:
+    pickle.dump(confusion, out)
